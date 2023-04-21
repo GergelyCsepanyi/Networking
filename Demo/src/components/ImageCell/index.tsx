@@ -1,10 +1,12 @@
 import React from 'react';
 import {Dimensions, Image, StyleSheet, View} from 'react-native';
 import ImageCellHeader, {ImageCellHeaderProps} from '../ImageCellHeader';
+import ImageCellFooter, {ImageCellFooterProps} from '../ImageCellFooter';
 
 export type ImageCellProps = {
   imageUrl?: string;
   headerProps: ImageCellHeaderProps;
+  footerProps: ImageCellFooterProps;
 };
 
 const screenWidth = Dimensions.get('window').width;
@@ -21,6 +23,7 @@ const ImageCell: React.FC<ImageCellProps> = (props: ImageCellProps) => {
         resizeMode="contain"
         source={{uri: props.imageUrl}}
       />
+      <ImageCellFooter {...props.footerProps} />
     </View>
   );
 };

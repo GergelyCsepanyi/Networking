@@ -25,8 +25,11 @@ export interface ImageScreenState {
   imageApi: ImageApiInterface<PhotoDataResponse>;
 }
 
-const renderItem = (itemInfo: ListRenderItemInfo<PhotoModel>) => {
+const RenderItem = (itemInfo: ListRenderItemInfo<PhotoModel>) => {
   const {item} = itemInfo;
+
+  const [isLiked, setIsLiked] = useState(item.isLiked);
+
   return (
     <View style={ImageScreenStyles.imageContainerStyle}>
       <ImageCell
@@ -35,6 +38,7 @@ const renderItem = (itemInfo: ListRenderItemInfo<PhotoModel>) => {
           authorName: item.name,
           profileUrl: item.profileImageUrl,
         }}
+        footerProps={{isLiked: item.isLiked, likesCount: item.likesCount}}
       />
     </View>
   );
@@ -83,7 +87,9 @@ const ImageScreen = () => {
         keyExtractor={(_, index) => String(index)}
         style={ImageScreenStyles.flatListStyle}
         data={images}
-        renderItem={renderItem}
+        renderItem={({item, index, separators}) => (
+          <RenderItem item={item} index={index} separators={separators} />
+        )}
         ListEmptyComponent={ListEmptyComponent}
         ItemSeparatorComponent={ItemSeparatorComponent}
       />
