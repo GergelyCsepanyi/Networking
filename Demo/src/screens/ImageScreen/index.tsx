@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {ListRenderItemInfo} from 'react-native/types';
 import {Text, View, FlatList} from 'react-native';
 import {
@@ -25,45 +25,43 @@ export interface ImageScreenState {
   imageApi: ImageApiInterface<PhotoDataResponse>;
 }
 
-class ImageScreen extends React.Component<{}, ImageScreenState> {
-  state = {
-    images: [] as PhotoModel[],
-    imageApi: new ImageApi<PhotoDataResponse>(),
-  };
+const renderItem = (itemInfo: ListRenderItemInfo<PhotoModel>) => {
+  const {item} = itemInfo;
+  return (
+    <View style={ImageScreenStyles.imageContainerStyle}>
+      <ImageCell
+        imageUrl={item.imageUrl}
+        headerProps={{
+          authorName: item.name,
+          profileUrl: item.profileImageUrl,
+        }}
+      />
+    </View>
+  );
+};
 
-  renderItem = (itemInfo: ListRenderItemInfo<PhotoModel>) => {
-    const {item} = itemInfo;
-    return (
-      <View style={ImageScreenStyles.imageContainerStyle}>
-        <ImageCell
-          imageUrl={item.imageUrl}
-          headerProps={{
-            authorName: item.name,
-            profileUrl: item.profileImageUrl,
-          }}
-        />
-      </View>
-    );
-  };
+const ListEmptyComponent = () => {
+  return (
+    <View style={ImageScreenStyles.emptyContainerStyle}>
+      <Text style={ImageScreenStyles.emptyTextStyle}>No images yet</Text>
+    </View>
+  );
+};
 
-  ListEmptyComponent = () => {
-    return (
-      <View style={ImageScreenStyles.emptyContainerStyle}>
-        <Text style={ImageScreenStyles.emptyTextStyle}>No images yet</Text>
-      </View>
-    );
-  };
+const ItemSeparatorComponent = () => {
+  return <Stack size={20} />;
+};
 
-  ItemSeparatorComponent = () => {
-    return <Stack size={20} />;
-  };
+const ImageScreen = () => {
+  const [images, setImages] = useState([] as PhotoModel[]);
+  const [imageApi] = useState(new ImageApi<PhotoDataResponse>());
 
-  componentDidMount() {
-    this.state.imageApi
+  useEffect(() => {
+    imageApi
       .fetchPhotos()
       .then(values => {
-        this.setState({
-          images: values.map(value => ({
+        setImages(
+          values.map(value => ({
             id: value.id,
             imageUrl: value.urls?.small,
             isLiked: value.liked_by_user,
@@ -71,28 +69,26 @@ class ImageScreen extends React.Component<{}, ImageScreenState> {
             name: value.user?.name,
             likesCount: value.likes,
           })),
-        });
+        );
       })
       .catch(error => console.log('fetch error: ', error));
-  }
+  }, [imageApi]);
 
-  render() {
-    return (
-      <BackgroundForm
-        additionalViewStyle={ImageScreenStyles.additionalViewStyle}
-        backgroundColor="darkslategrey"
-        headerProps={{title: 'Images'}}>
-        <FlatList
-          keyExtractor={(_, index) => String(index)}
-          style={ImageScreenStyles.flatListStyle}
-          data={this.state.images}
-          renderItem={this.renderItem}
-          ListEmptyComponent={this.ListEmptyComponent}
-          ItemSeparatorComponent={this.ItemSeparatorComponent}
-        />
-      </BackgroundForm>
-    );
-  }
-}
+  return (
+    <BackgroundForm
+      additionalViewStyle={ImageScreenStyles.additionalViewStyle}
+      backgroundColor="darkslategrey"
+      headerProps={{title: 'Images'}}>
+      <FlatList
+        keyExtractor={(_, index) => String(index)}
+        style={ImageScreenStyles.flatListStyle}
+        data={images}
+        renderItem={renderItem}
+        ListEmptyComponent={ListEmptyComponent}
+        ItemSeparatorComponent={ItemSeparatorComponent}
+      />
+    </BackgroundForm>
+  );
+};
 
 export default ImageScreen;
