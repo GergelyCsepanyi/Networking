@@ -39,7 +39,7 @@ export class ImageApi<T> implements ImageApiInterface<T> {
     tokenPrefix: string = 'Bearer',
     accessToken: string = ACCESS_TOKEN,
   ): Promise<Response> {
-    return fetch(`${BASE_URL + path}/:${id}/like`, {
+    return fetch(`${BASE_URL + path}/${id}/like`, {
       method,
       headers: {
         Accept: 'application/json',
@@ -54,35 +54,11 @@ export class ImageApi<T> implements ImageApiInterface<T> {
       .then(data => data as T[]);
   }
 
-  async likePhoto(
-    id: string,
-    method = 'POST',
-    path: string = PHOTOS,
-    tokenPrefix: string = 'Bearer',
-    accessToken: string = ACCESS_TOKEN,
-  ): Promise<Response> {
-    return fetch(`${BASE_URL + path}/${id}/like`, {
-      method,
-      headers: {
-        Accept: 'application/json',
-        Authorization: `${tokenPrefix} ${accessToken}`,
-      },
-    }).then(response => response.json());
+  async likePhoto(id: string): Promise<Response> {
+    return this.initLikeDislike(id, 'POST').then(response => response.json());
   }
 
-  async unlikePhoto(
-    id: string,
-    method = 'DELETE',
-    path: string = PHOTOS,
-    tokenPrefix: string = 'Bearer',
-    accessToken: string = ACCESS_TOKEN,
-  ): Promise<Response> {
-    return fetch(`${BASE_URL + path}/${id}/like`, {
-      method,
-      headers: {
-        Accept: 'application/json',
-        Authorization: `${tokenPrefix} ${accessToken}`,
-      },
-    }).then(response => response.json());
+  async unlikePhoto(id: string): Promise<Response> {
+    return this.initLikeDislike(id, 'DELETE').then(response => response.json());
   }
 }

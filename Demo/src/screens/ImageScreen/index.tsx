@@ -31,16 +31,13 @@ export interface ImageScreenState {
   imageApi: ImageApiInterface<PhotoDataResponse>;
 }
 
-type LikePhotoFunction = (id: string) => Promise<Response>;
-
 const RenderItem = (props: {
   itemInfo: ListRenderItemInfo<PhotoModel>;
-  likePhoto: LikePhotoFunction;
-  unlikePhoto: LikePhotoFunction;
+  imageApi: ImageApi<PhotoDataResponse>;
   images: PhotoModel[];
 }) => {
   const {item} = props.itemInfo;
-  const {likePhoto, unlikePhoto, images} = props;
+  const {imageApi, images} = props;
 
   const [isLiked, setIsLiked] = useState(item.isLiked);
   const [likesCount, setLikesCount] = useState(item.likesCount);
@@ -53,19 +50,17 @@ const RenderItem = (props: {
   const onToggleLike = () => {
     setIsLiked(currentState => {
       if (currentState) {
-        console.log('DISLIKE id: ', item.id);
         setLikesCount(currentLikesState => --currentLikesState);
-        unlikePhoto(item.id)
+        imageApi
+          .unlikePhoto(item.id)
           .then(response => console.log('Successfully disliked:', response))
           .catch(error => console.log('Error during dislike:', error));
       } else {
-        console.log('LIKE id: ', item.id);
         setLikesCount(currentLikesState => ++currentLikesState);
-        likePhoto(item.id)
+        imageApi
+          .likePhoto(item.id)
           .then(response => console.log('Successfully liked:', response))
-          .catch(error =>
-            console.log('Error during like:', error, 'likePhoto:', likePhoto),
-          );
+          .catch(error => console.log('Error during like:', error));
       }
       return !currentState;
     });
@@ -121,7 +116,7 @@ const ImageScreen = () => {
     }));
   };
 
-  const fetchMore = async () => {
+  const fetchMore = () => {
     if (refreshing) {
       return;
     }
@@ -131,7 +126,7 @@ const ImageScreen = () => {
 
     imageApi.fetchPhotos(nextPage).then(values => {
       const newData = formatToPhotoModelArray(values);
-      console.log('current page:', currentPage);
+
       setCurrentPage(nextPage);
       setRefreshing(false);
       setImages(currentData => [...currentData, ...newData]);
@@ -153,7 +148,6 @@ const ImageScreen = () => {
   );
 
   useEffect(() => {
-    console.log('loading...');
     loadPhotos();
   }, [imageApi, loadPhotos]);
 
@@ -168,12 +162,7 @@ const ImageScreen = () => {
         style={ImageScreenStyles.flatListStyle}
         data={images}
         renderItem={itemInfo => (
-          <RenderItem
-            itemInfo={itemInfo}
-            likePhoto={imageApi.likePhoto}
-            unlikePhoto={imageApi.unlikePhoto}
-            images={images}
-          />
+          <RenderItem itemInfo={itemInfo} imageApi={imageApi} images={images} />
         )}
         ListEmptyComponent={ListEmptyComponent}
         ItemSeparatorComponent={ItemSeparatorComponent}
