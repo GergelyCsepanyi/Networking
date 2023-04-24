@@ -42,8 +42,6 @@ const RenderItem = (props: {
   const {item} = props.itemInfo;
   const {likePhoto, unlikePhoto, images} = props;
 
-  console.log('likePhoto:', likePhoto);
-
   const [isLiked, setIsLiked] = useState(item.isLiked);
   const [likesCount, setLikesCount] = useState(item.likesCount);
 
@@ -108,28 +106,54 @@ const ImageScreen = () => {
   const [refreshing, setRefreshing] = useState(true);
   const [images, setImages] = useState([] as PhotoModel[]);
   const [imageApi] = useState(new ImageApi<PhotoDataResponse>());
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const loadPhotos = useCallback(() => {
-    imageApi
-      .fetchPhotos()
-      .then(values => {
-        setImages(
-          values.map(value => ({
-            id: value.id,
-            imageUrl: value.urls?.small,
-            isLiked: value.liked_by_user,
-            profileImageUrl: value.user?.profile_image?.small,
-            name: value.user?.name,
-            likesCount: value.likes,
-          })),
-        );
-        setRefreshing(false);
-        console.log(values.find(value => value.id === 'qe2RkzzMx9A'));
-      })
-      .catch(error => console.log('fetch error: ', error));
-  }, [imageApi]);
+  const formatToPhotoModelArray = (
+    values: PhotoDataResponse[],
+  ): PhotoModel[] => {
+    return values.map(value => ({
+      id: value.id,
+      imageUrl: value.urls?.small,
+      isLiked: value.liked_by_user,
+      profileImageUrl: value.user?.profile_image?.small,
+      name: value.user?.name,
+      likesCount: value.likes,
+    }));
+  };
+
+  const fetchMore = async () => {
+    if (refreshing) {
+      return;
+    }
+    setRefreshing(true);
+
+    const nextPage = currentPage + 1;
+
+    imageApi.fetchPhotos(nextPage).then(values => {
+      const newData = formatToPhotoModelArray(values);
+      console.log('current page:', currentPage);
+      setCurrentPage(nextPage);
+      setRefreshing(false);
+      setImages(currentData => [...currentData, ...newData]);
+    });
+  };
+
+  const loadPhotos = useCallback(
+    (page: number = 1) => {
+      imageApi
+        .fetchPhotos(page)
+        .then(values => {
+          setImages(formatToPhotoModelArray(values));
+          setRefreshing(false);
+          setCurrentPage(1);
+        })
+        .catch(error => console.log('fetch error: ', error));
+    },
+    [imageApi],
+  );
 
   useEffect(() => {
+    console.log('loading...');
     loadPhotos();
   }, [imageApi, loadPhotos]);
 
@@ -156,6 +180,8 @@ const ImageScreen = () => {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={loadPhotos} />
         }
+        onEndReached={fetchMore}
+        onEndReachedThreshold={0.1}
       />
     </BackgroundForm>
   );

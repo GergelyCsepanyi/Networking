@@ -6,7 +6,7 @@ const CLIENT_ID = API_CLIENT_ID;
 const ACCESS_TOKEN = API_ACCESSTOKEN;
 
 export interface ImageApiInterface<T> {
-  fetchPhotos(): Promise<Array<T>>;
+  fetchPhotos(page: number): Promise<Array<T>>;
 }
 
 export type PhotoDataResponse = {
@@ -19,10 +19,11 @@ export type PhotoDataResponse = {
 
 export class ImageApi<T> implements ImageApiInterface<T> {
   private async init(
+    page: number = 1,
     path: string = PHOTOS,
     method: string = 'GET',
   ): Promise<Response> {
-    return fetch(BASE_URL + path, {
+    return fetch(`${BASE_URL + path}?page=${page}`, {
       method,
       headers: {
         Accept: 'application/json',
@@ -47,8 +48,8 @@ export class ImageApi<T> implements ImageApiInterface<T> {
     });
   }
 
-  async fetchPhotos(): Promise<T[]> {
-    return this.init()
+  async fetchPhotos(page: number): Promise<T[]> {
+    return this.init(page)
       .then(response => response.json())
       .then(data => data as T[]);
   }
