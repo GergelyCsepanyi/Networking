@@ -1,6 +1,12 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {ListRenderItemInfo} from 'react-native/types';
-import {Text, View, FlatList} from 'react-native';
+import {
+  Text,
+  View,
+  FlatList,
+  ActivityIndicator,
+  RefreshControl,
+} from 'react-native';
 import {
   ImageApi,
   ImageApiInterface,
@@ -31,14 +37,20 @@ const RenderItem = (props: {
   itemInfo: ListRenderItemInfo<PhotoModel>;
   likePhoto: LikePhotoFunction;
   unlikePhoto: LikePhotoFunction;
+  images: PhotoModel[];
 }) => {
   const {item} = props.itemInfo;
-  const {likePhoto, unlikePhoto} = props;
+  const {likePhoto, unlikePhoto, images} = props;
 
   console.log('likePhoto:', likePhoto);
 
   const [isLiked, setIsLiked] = useState(item.isLiked);
   const [likesCount, setLikesCount] = useState(item.likesCount);
+
+  useEffect(() => {
+    setIsLiked(item.isLiked);
+    setLikesCount(item.likesCount);
+  }, [images, item.isLiked, item.likesCount]);
 
   const onToggleLike = () => {
     setIsLiked(currentState => {
@@ -93,10 +105,11 @@ const ItemSeparatorComponent = () => {
 };
 
 const ImageScreen = () => {
+  const [refreshing, setRefreshing] = useState(true);
   const [images, setImages] = useState([] as PhotoModel[]);
   const [imageApi] = useState(new ImageApi<PhotoDataResponse>());
 
-  useEffect(() => {
+  const loadPhotos = useCallback(() => {
     imageApi
       .fetchPhotos()
       .then(values => {
@@ -110,15 +123,22 @@ const ImageScreen = () => {
             likesCount: value.likes,
           })),
         );
+        setRefreshing(false);
+        console.log(values.find(value => value.id === 'qe2RkzzMx9A'));
       })
       .catch(error => console.log('fetch error: ', error));
   }, [imageApi]);
+
+  useEffect(() => {
+    loadPhotos();
+  }, [imageApi, loadPhotos]);
 
   return (
     <BackgroundForm
       additionalViewStyle={ImageScreenStyles.additionalViewStyle}
       backgroundColor="darkslategrey"
       headerProps={{title: 'Images'}}>
+      {refreshing ? <ActivityIndicator /> : null}
       <FlatList
         keyExtractor={(_, index) => String(index)}
         style={ImageScreenStyles.flatListStyle}
@@ -128,10 +148,14 @@ const ImageScreen = () => {
             itemInfo={itemInfo}
             likePhoto={imageApi.likePhoto}
             unlikePhoto={imageApi.unlikePhoto}
+            images={images}
           />
         )}
         ListEmptyComponent={ListEmptyComponent}
         ItemSeparatorComponent={ItemSeparatorComponent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={loadPhotos} />
+        }
       />
     </BackgroundForm>
   );
