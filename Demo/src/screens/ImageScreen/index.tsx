@@ -25,10 +25,41 @@ export interface ImageScreenState {
   imageApi: ImageApiInterface<PhotoDataResponse>;
 }
 
-const RenderItem = (itemInfo: ListRenderItemInfo<PhotoModel>) => {
-  const {item} = itemInfo;
+type LikePhotoFunction = (id: string) => Promise<Response>;
+
+const RenderItem = (props: {
+  itemInfo: ListRenderItemInfo<PhotoModel>;
+  likePhoto: LikePhotoFunction;
+  unlikePhoto: LikePhotoFunction;
+}) => {
+  const {item} = props.itemInfo;
+  const {likePhoto, unlikePhoto} = props;
+
+  console.log('likePhoto:', likePhoto);
 
   const [isLiked, setIsLiked] = useState(item.isLiked);
+  const [likesCount, setLikesCount] = useState(item.likesCount);
+
+  const onToggleLike = () => {
+    setIsLiked(currentState => {
+      if (currentState) {
+        console.log('DISLIKE id: ', item.id);
+        setLikesCount(currentLikesState => --currentLikesState);
+        unlikePhoto(item.id)
+          .then(response => console.log('Successfully disliked:', response))
+          .catch(error => console.log('Error during dislike:', error));
+      } else {
+        console.log('LIKE id: ', item.id);
+        setLikesCount(currentLikesState => ++currentLikesState);
+        likePhoto(item.id)
+          .then(response => console.log('Successfully liked:', response))
+          .catch(error =>
+            console.log('Error during like:', error, 'likePhoto:', likePhoto),
+          );
+      }
+      return !currentState;
+    });
+  };
 
   return (
     <View style={ImageScreenStyles.imageContainerStyle}>
@@ -38,7 +69,12 @@ const RenderItem = (itemInfo: ListRenderItemInfo<PhotoModel>) => {
           authorName: item.name,
           profileUrl: item.profileImageUrl,
         }}
-        footerProps={{isLiked: item.isLiked, likesCount: item.likesCount}}
+        footerProps={{
+          isLiked,
+          likesCount,
+          onToggleLike,
+          imageId: item.id,
+        }}
       />
     </View>
   );
@@ -87,8 +123,12 @@ const ImageScreen = () => {
         keyExtractor={(_, index) => String(index)}
         style={ImageScreenStyles.flatListStyle}
         data={images}
-        renderItem={({item, index, separators}) => (
-          <RenderItem item={item} index={index} separators={separators} />
+        renderItem={itemInfo => (
+          <RenderItem
+            itemInfo={itemInfo}
+            likePhoto={imageApi.likePhoto}
+            unlikePhoto={imageApi.unlikePhoto}
+          />
         )}
         ListEmptyComponent={ListEmptyComponent}
         ItemSeparatorComponent={ItemSeparatorComponent}

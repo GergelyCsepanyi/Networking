@@ -15,6 +15,9 @@ const LikeButtonStyles = StyleSheet.create({
     color: 'black',
     fontWeight: '400',
   },
+  likedTextStyle: {
+    fontWeight: 'bold',
+  },
 });
 
 export default LikeButtonStyles;

@@ -4,9 +4,9 @@ import ImageCellHeader, {ImageCellHeaderProps} from '../ImageCellHeader';
 import ImageCellFooter, {ImageCellFooterProps} from '../ImageCellFooter';
 
 export type ImageCellProps = {
-  imageUrl?: string;
   headerProps: ImageCellHeaderProps;
   footerProps: ImageCellFooterProps;
+  imageUrl?: string;
 };
 
 const screenWidth = Dimensions.get('window').width;
