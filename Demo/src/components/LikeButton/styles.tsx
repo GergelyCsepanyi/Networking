@@ -1,6 +1,6 @@
 import {StyleSheet} from 'react-native';
 
-const LikeButtonStyles = StyleSheet.create({
+const styles = StyleSheet.create({
   mainContainerStyle: {
     flexDirection: 'row',
     alignContent: 'center',
@@ -20,4 +20,4 @@ const LikeButtonStyles = StyleSheet.create({
   },
 });
 
-export default LikeButtonStyles;
+export default styles;

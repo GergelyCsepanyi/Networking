@@ -1,6 +1,6 @@
 import {StyleSheet} from 'react-native';
 
-const ImageCellHeaderStyles = StyleSheet.create({
+const styles = StyleSheet.create({
   headerContainerStyle: {
     width: '100%',
     height: 40,
@@ -18,4 +18,4 @@ const ImageCellHeaderStyles = StyleSheet.create({
   },
 });
 
-export default ImageCellHeaderStyles;
+export default styles;

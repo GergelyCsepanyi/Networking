@@ -1,6 +1,6 @@
 import {StyleSheet} from 'react-native';
 
-const ImageScreenStyles = StyleSheet.create({
+const styles = StyleSheet.create({
   additionalViewStyle: {
     flex: 1,
     width: '100%',
@@ -15,9 +15,7 @@ const ImageScreenStyles = StyleSheet.create({
     flex: 1,
     width: '100%',
   },
-  imageContainerStyle: {
-    width: '100%',
-  },
+
   emptyContainerStyle: {
     flex: 1,
     justifyContent: 'center',
@@ -29,4 +27,4 @@ const ImageScreenStyles = StyleSheet.create({
   },
 });
 
-export default ImageScreenStyles;
+export default styles;

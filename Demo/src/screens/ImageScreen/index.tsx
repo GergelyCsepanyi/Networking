@@ -1,5 +1,4 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {ListRenderItemInfo} from 'react-native/types';
 import {
   Text,
   View,
@@ -12,12 +11,12 @@ import {
   ImageApiInterface,
   PhotoDataResponse,
 } from '../../services/ImageApi';
-import ImageScreenStyles from './styles';
-import ImageCell from '../../components/ImageCell';
+import styles from './styles';
 import {Stack} from 'react-native-spacing-system';
 import BackgroundForm from '../../components/BackgroundForm';
+import RenderItem from '../../components/RenderItem';
 
-type PhotoModel = {
+export type PhotoModel = {
   id: string;
   imageUrl?: string;
   profileImageUrl?: string;
@@ -31,64 +30,10 @@ export interface ImageScreenState {
   imageApi: ImageApiInterface<PhotoDataResponse>;
 }
 
-const RenderItem = (props: {
-  itemInfo: ListRenderItemInfo<PhotoModel>;
-  imageApi: ImageApi<PhotoDataResponse>;
-  images: PhotoModel[];
-}) => {
-  const {item} = props.itemInfo;
-  const {imageApi, images} = props;
-
-  const [isLiked, setIsLiked] = useState(item.isLiked);
-  const [likesCount, setLikesCount] = useState(item.likesCount);
-
-  useEffect(() => {
-    setIsLiked(item.isLiked);
-    setLikesCount(item.likesCount);
-  }, [images, item.isLiked, item.likesCount]);
-
-  const onToggleLike = () => {
-    setIsLiked(currentState => {
-      if (currentState) {
-        setLikesCount(currentLikesState => --currentLikesState);
-        imageApi
-          .unlikePhoto(item.id)
-          .then(response => console.log('Successfully disliked:', response))
-          .catch(error => console.log('Error during dislike:', error));
-      } else {
-        setLikesCount(currentLikesState => ++currentLikesState);
-        imageApi
-          .likePhoto(item.id)
-          .then(response => console.log('Successfully liked:', response))
-          .catch(error => console.log('Error during like:', error));
-      }
-      return !currentState;
-    });
-  };
-
-  return (
-    <View style={ImageScreenStyles.imageContainerStyle}>
-      <ImageCell
-        imageUrl={item.imageUrl}
-        headerProps={{
-          authorName: item.name,
-          profileUrl: item.profileImageUrl,
-        }}
-        footerProps={{
-          isLiked,
-          likesCount,
-          onToggleLike,
-          imageId: item.id,
-        }}
-      />
-    </View>
-  );
-};
-
 const ListEmptyComponent = () => {
   return (
-    <View style={ImageScreenStyles.emptyContainerStyle}>
-      <Text style={ImageScreenStyles.emptyTextStyle}>No images yet</Text>
+    <View style={styles.emptyContainerStyle}>
+      <Text style={styles.emptyTextStyle}>No images yet</Text>
     </View>
   );
 };
@@ -102,6 +47,24 @@ const ImageScreen = () => {
   const [images, setImages] = useState([] as PhotoModel[]);
   const [imageApi] = useState(new ImageApi<PhotoDataResponse>());
   const [currentPage, setCurrentPage] = useState(1);
+
+  const loadPhotos = useCallback(
+    (page: number = 1) => {
+      imageApi
+        .fetchPhotos(page)
+        .then(values => {
+          setImages(formatToPhotoModelArray(values));
+          setRefreshing(false);
+          setCurrentPage(1);
+        })
+        .catch(error => console.log('fetch error: ', error));
+    },
+    [imageApi],
+  );
+
+  useEffect(() => {
+    loadPhotos();
+  }, [imageApi, loadPhotos]);
 
   const formatToPhotoModelArray = (
     values: PhotoDataResponse[],
@@ -133,33 +96,15 @@ const ImageScreen = () => {
     });
   };
 
-  const loadPhotos = useCallback(
-    (page: number = 1) => {
-      imageApi
-        .fetchPhotos(page)
-        .then(values => {
-          setImages(formatToPhotoModelArray(values));
-          setRefreshing(false);
-          setCurrentPage(1);
-        })
-        .catch(error => console.log('fetch error: ', error));
-    },
-    [imageApi],
-  );
-
-  useEffect(() => {
-    loadPhotos();
-  }, [imageApi, loadPhotos]);
-
   return (
     <BackgroundForm
-      additionalViewStyle={ImageScreenStyles.additionalViewStyle}
+      additionalViewStyle={styles.additionalViewStyle}
       backgroundColor="darkslategrey"
       headerProps={{title: 'Images'}}>
       {refreshing ? <ActivityIndicator /> : null}
       <FlatList
         keyExtractor={(_, index) => String(index)}
-        style={ImageScreenStyles.flatListStyle}
+        style={styles.flatListStyle}
         data={images}
         renderItem={itemInfo => (
           <RenderItem itemInfo={itemInfo} imageApi={imageApi} images={images} />

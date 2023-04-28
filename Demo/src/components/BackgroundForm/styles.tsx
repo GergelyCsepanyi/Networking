@@ -1,6 +1,6 @@
 import {StyleSheet} from 'react-native';
 
-const BackgroundFormStyles = StyleSheet.create({
+const styles = StyleSheet.create({
   mainContainerStyle: {
     flex: 1,
   },
@@ -25,4 +25,4 @@ const BackgroundFormStyles = StyleSheet.create({
   },
 });
 
-export default BackgroundFormStyles;
+export default styles;

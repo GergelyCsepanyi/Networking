@@ -8,7 +8,7 @@ import {
   SafeAreaView,
   Text,
 } from 'react-native';
-import BackgroundFormStyles from './styles';
+import styles from './styles';
 
 interface BackgroundFormProps {
   children: React.ReactNode;
@@ -18,31 +18,25 @@ interface BackgroundFormProps {
   additionalViewStyle?: StyleProp<ViewStyle>;
 }
 
-class BackgroundForm extends React.Component<BackgroundFormProps, {}> {
-  render(): React.ReactNode {
-    return (
-      <SafeAreaView
-        style={[
-          BackgroundFormStyles.mainContainerStyle,
-          {backgroundColor: this.props.backgroundColor},
-        ]}>
-        <View>
-          <View style={BackgroundFormStyles.titleContainerStyle}>
-            <Text style={BackgroundFormStyles.titleStyle}>
-              {this.props.headerProps.title}
-            </Text>
-          </View>
-
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-            <View style={[BackgroundFormStyles.childrenContainerStyle]}>
-              {this.props.children}
-            </View>
-          </KeyboardAvoidingView>
+const BackgroundForm = (props: BackgroundFormProps) => {
+  return (
+    <SafeAreaView
+      style={[
+        styles.mainContainerStyle,
+        {backgroundColor: props.backgroundColor},
+      ]}>
+      <View>
+        <View style={styles.titleContainerStyle}>
+          <Text style={styles.titleStyle}>{props.headerProps.title}</Text>
         </View>
-      </SafeAreaView>
-    );
-  }
-}
+
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <View style={[styles.childrenContainerStyle]}>{props.children}</View>
+        </KeyboardAvoidingView>
+      </View>
+    </SafeAreaView>
+  );
+};
 
 export default BackgroundForm;
